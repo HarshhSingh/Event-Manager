@@ -16,7 +16,7 @@ interface IProps {
   id: string;
 }
 export const ShowEvent = ({ open, handleClose, anchor, id }: IProps) => {
-  const { getEventsById, deleteEvent,editEvent } = useCalendarStore();
+  const { getEventsById, deleteEvent, editEvent } = useCalendarStore();
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
 
@@ -106,7 +106,10 @@ export const ShowEvent = ({ open, handleClose, anchor, id }: IProps) => {
         <AddEvent
           open
           createEvent={editEvent}
-          handleClose={() => setShowEditModal(false)}
+          handleClose={() => {
+            setShowEditModal(false);
+            handleClose();
+          }}
           editMode
           eventData={selectedEventQuery?.data ?? undefined}
         />

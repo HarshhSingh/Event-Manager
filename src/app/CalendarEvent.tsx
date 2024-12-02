@@ -14,6 +14,7 @@ import {
 import { AddEvent } from "@/components/AddEvent";
 import { useQuery } from "@tanstack/react-query";
 import { ShowEvent } from "@/components/ShowEvent";
+import { LoadingSpinner } from "@/components/Loader";
 
 export default function CalendarEvent() {
   const { createEvent, getEvents } = useCalendarStore();
@@ -26,18 +27,17 @@ export default function CalendarEvent() {
   const eventsQuery = useQuery({
     queryKey: ["getEvents"],
     queryFn: () => {
-      console.log('get events');
-      
+      console.log("get events");
+
       return getEvents();
     },
-
   });
 
   const calendarRef = useRef<FullCalendar | null>(null);
 
   return (
     <SidebarWithCalendar>
-      <div className="w-full px-8 py-8">
+      <div className="w-full h-full px-8 py-16">
         {!eventsQuery?.isPending ? (
           <FullCalendar
             ref={calendarRef}
@@ -62,7 +62,9 @@ export default function CalendarEvent() {
             events={eventsQuery?.data as EventSourceInput}
           />
         ) : (
-          <div>loader</div>
+          <div className="flex h-full items-center justify-center">
+            <LoadingSpinner className="w-full h-16  " />
+          </div>
         )}
       </div>
       {!!showAddEventModal ? (
