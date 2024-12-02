@@ -8,44 +8,59 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DateClickArg } from "@fullcalendar/interaction";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { DatePicker } from "./DatePicker";
 import { toast } from "sonner";
 import { IEvent } from "@/useCalendarStore";
+import { DateSelectArg } from "@fullcalendar/core/index.js";
+import { useEffect } from "react";
 interface IProps {
-  date: DateClickArg;
-  createEvent: (event: IEvent) => Promise<IEvent[]>;
+  date?: DateSelectArg;
+  createEvent?: (event: IEvent) => Promise<IEvent[]>;
   open: boolean;
+  editMode?: boolean;
   handleClose: () => void;
+  eventData?: IEvent;
 }
 interface IForm {
+  id: string;
   start: Date | null;
   end: Date | null;
   title: string;
 }
-export function AddEvent({ date, createEvent, open, handleClose }: IProps) {
+export function AddEvent({
+  date,
+  createEvent,
+  open,
+  handleClose,
+  eventData,
+  editMode = false,
+}: IProps) {
   const form = useForm<IForm>({
     defaultValues: {
+      id: String(Math.random()),
       title: "",
-      start: date?.date ?? new Date(),
+      start: date?.start ?? new Date(),
       end: null,
     },
   });
-  const { register, handleSubmit } = form;
+  const queryClient = useQueryClient();
+  const { register, handleSubmit, setValue } = form;
+
   const createEventMutation = useMutation({
     mutationKey: ["createEvent"],
     mutationFn: async (payload: IEvent) => {
-      console.log("skljsd");
 
-      const res = await createEvent(payload);
+      const res = await createEvent?.(payload);
       return res;
-      console.log(res, "response");
     },
     onSuccess: () => {
-      toast("Event Created");
+      toast("Event Saved");
+      queryClient.refetchQueries({
+        queryKey: ["getEvents"],
+      });
       handleClose();
     },
     onError: () => {
@@ -55,16 +70,32 @@ export function AddEvent({ date, createEvent, open, handleClose }: IProps) {
   const handleCreateEvent: SubmitHandler<IForm> = (values) => {
     const payload = {
       ...values,
-      id: String(Math.random()),
     };
     createEventMutation.mutate(payload);
   };
+
+  useEffect(() => {
+    if (!editMode) return;
+
+    setValue("start", eventData?.start ?? null);
+    setValue("end", eventData?.end ?? null);
+    setValue("title", eventData?.title ?? "");
+    setValue("id", eventData?.id ?? "");
+  }, [
+    editMode,
+    eventData?.end,
+    eventData?.id,
+    eventData?.start,
+    eventData?.title,
+    setValue,
+  ]);
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <FormProvider {...form}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Create Event</DialogTitle>
+            <DialogTitle>{editMode ? "Edit" : "Create"} Event</DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-col gap-6 py-4">

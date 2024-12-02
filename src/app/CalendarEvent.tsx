@@ -3,10 +3,14 @@ import FullCalendar from "@fullcalendar/react";
 import { useRef, useState } from "react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin, { DateClickArg } from "@fullcalendar/interaction";
+import interactionPlugin from "@fullcalendar/interaction";
 import { SidebarWithCalendar } from "@/components/components-sidebar-12";
 import { useCalendarStore } from "@/useCalendarStore";
-import { EventSourceInput } from "@fullcalendar/core";
+import {
+  DateSelectArg,
+  EventClickArg,
+  EventSourceInput,
+} from "@fullcalendar/core";
 import { AddEvent } from "@/components/AddEvent";
 import { useQuery } from "@tanstack/react-query";
 import { ShowEvent } from "@/components/ShowEvent";
@@ -14,14 +18,19 @@ import { ShowEvent } from "@/components/ShowEvent";
 export default function CalendarEvent() {
   const { createEvent, getEvents } = useCalendarStore();
   const [showAddEventModal, setshowAddEventModal] =
-    useState<DateClickArg | null>(null);
+    useState<DateSelectArg | null>(null);
 
-  const [showEventModal, setshowEventModal] = useState<null | HTMLElement>(null);
+  const [showEventModal, setshowEventModal] = useState<null | EventClickArg>(
+    null
+  );
   const eventsQuery = useQuery({
     queryKey: ["getEvents"],
     queryFn: () => {
+      console.log('get events');
+      
       return getEvents();
     },
+
   });
 
   const calendarRef = useRef<FullCalendar | null>(null);
@@ -45,13 +54,12 @@ export default function CalendarEvent() {
             selectable={true}
             selectMirror={true}
             eventClick={(arg) => {
-              console.log(arg.el);
-              setshowEventModal(arg.el);
+              setshowEventModal(arg);
             }}
-            dateClick={(arg) => {
+            select={(arg) => {
               setshowAddEventModal(arg);
             }}
-            initialEvents={eventsQuery?.data as EventSourceInput}
+            events={eventsQuery?.data as EventSourceInput}
           />
         ) : (
           <div>loader</div>
@@ -69,7 +77,8 @@ export default function CalendarEvent() {
         <ShowEvent
           handleClose={() => setshowEventModal(null)}
           open={!!showEventModal}
-          anchor={showEventModal}
+          id={showEventModal?.event?.id}
+          anchor={showEventModal?.el}
         />
       ) : null}
     </SidebarWithCalendar>

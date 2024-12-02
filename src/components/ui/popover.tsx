@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import * as PopoverPrimitive from "@radix-ui/react-popover"
+import * as React from "react";
+import * as PopoverPrimitive from "@radix-ui/react-popover";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
-const Popover = PopoverPrimitive.Root
+const Popover = PopoverPrimitive.Root;
 
-const PopoverTrigger = PopoverPrimitive.Trigger
+const PopoverTrigger = PopoverPrimitive.Trigger;
 
-const PopoverAnchor = PopoverPrimitive.Anchor
+const PopoverAnchor = PopoverPrimitive.Anchor;
 
 const PopoverContent = React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Content>,
@@ -27,7 +27,59 @@ const PopoverContent = React.forwardRef<
       {...props}
     />
   </PopoverPrimitive.Portal>
-))
-PopoverContent.displayName = PopoverPrimitive.Content.displayName
+));
 
-export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor }
+PopoverContent.displayName = PopoverPrimitive.Content.displayName;
+
+interface CustomPopoverProps extends PopoverPrimitive.PopoverContentProps {
+  isOpen: boolean;
+  onClose: () => void;
+  anchorEl: HTMLElement | null;
+  children: React.ReactNode;
+  className?: string;
+}
+const CustomPopover: React.FC<CustomPopoverProps> = ({
+  isOpen,
+  onClose,
+  anchorEl,
+  children,
+  className,
+  ...props
+}) => {
+  const popoverAnchorRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (anchorEl && popoverAnchorRef.current) {
+      const anchorRect = anchorEl.getBoundingClientRect();
+      popoverAnchorRef.current.style.position = "absolute";
+      popoverAnchorRef.current.style.top = `${
+        anchorRect.top + window.scrollY + 30
+      }px`;
+      popoverAnchorRef.current.style.left = `${
+        anchorRect.left + window.scrollX
+      }px`;
+    }
+  }, [anchorEl]);
+
+  if (!isOpen) return null;
+
+  return (
+    <Popover open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <PopoverAnchor ref={popoverAnchorRef} />
+      <PopoverContent
+        className={cn("p-4 bg-white border rounded shadow", className)}
+        {...props}
+      >
+        {children}
+      </PopoverContent>
+    </Popover>
+  );
+};
+
+export {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverAnchor,
+  CustomPopover,
+};

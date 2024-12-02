@@ -14,6 +14,8 @@ interface IStore extends IStoreState {
   createEvent: (newEvent: IEvent) => Promise<IEvent[]>;
   editEvent: (newEvent: IEvent) => Promise<IEvent[]>;
   getEvents: () => Promise<IEvent[]>;
+  getEventsById: (id: string) => Promise<IEvent | null>;
+  deleteEvent: (id: string) => Promise<string>;
 }
 
 export const useCalendarStore = create<IStore>()(
@@ -23,6 +25,18 @@ export const useCalendarStore = create<IStore>()(
       getEvents: () =>
         new Promise((resolve) => {
           resolve(get().events);
+        }),
+      getEventsById: (id: string) =>
+        new Promise((resolve) => {
+          const selectedEvent = get().events?.find((item) => item?.id === id);
+          resolve(selectedEvent ?? null);
+        }),
+      deleteEvent: (id: string) =>
+        new Promise((resolve) => {
+          set((state: IStoreState) => ({
+            events: state.events?.filter((i) => i.id !== id),
+          }));
+          resolve("Event Deleted");
         }),
       createEvent: (newEvent) =>
         new Promise((resolve) => {

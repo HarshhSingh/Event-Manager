@@ -59,7 +59,7 @@ import { format } from "date-fns";
 // This is sample data.
 const data = {
   user: {
-    name: "shadcn",
+    name: "user",
     email: "m@example.com",
     avatar: "/avatars/shadcn.jpg",
   },
